@@ -8,43 +8,38 @@ from datetime import datetime
 
 bp = Blueprint('instance', __name__)
 
-sample_instances = [
-    {
-        'id': 1,
-        'name': 'Instance1',
-        'owner_name': 'owner1',
-        'owner_email': 'email1',
-    },
-    {
-        'id': 2,
-        'name': 'Instance2',
-        'owner_name': 'owner2',
-        'owner_email': 'email2',
-    },
-]
 
-
-@bp.route('/instances', methods=['GET', 'POST'])
+@bp.route('/instances/<int:instance_id>', methods=['GET'])
 # @AdminPermission()
-def list_all():
-    instances = Instance.query.all()
-    # print(sample_instances)
-    return Response(json.dumps(instances), status=200, mimetype='application/json')
+def list(instance_id):
+    print(instance_id)
+    if instance_id:
+        print('Checking instance for id', instance_id)
+        result = Instance.query.get(1)
+        print('Found result', result)
+    else:
+        result = Instance.query.all()
+    print
+    if result:
+
+        return Response(json.dumps(result), status=200, mimetype='application/json')
+    else:
+        return Response('Instance not found', status=404)
 
 
-@bp.route('/instance', methods=['POST'])
+@bp.route('/instances', methods=['POST'])
 # @AdminPermission()
 def create(data):
     return list_all()
 
 
-@bp.route('/instance/:id', methods=['DELETE'])
+@bp.route('/instances/<int:instance_id>', methods=['DELETE'])
 # @AdminPermission()
-def delete(id):
+def delete(instance_id):
     return list_all()
 
 
-@bp.route('/instance/:id', methods=['PUT', 'PATCH'])
+@bp.route('/instances/<int:instance_id>', methods=['PUT', 'PATCH'])
 # @AdminPermission()
-def update(id, data):
+def update(instance_id, data):
     return list_all()

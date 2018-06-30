@@ -41,6 +41,7 @@ def create_app(**config_overrides):
         Description of returned object.
 
     """
+
     app = Flask(__name__)
 
     # Load config
@@ -95,6 +96,8 @@ def create_app(**config_overrides):
 
 
 def register_db(app):
+    # Check if database is already setup or not
+    print('Checking database setup')
     if not buildDB.setup_db():
         sys.exit()
     db = SQLAlchemy()

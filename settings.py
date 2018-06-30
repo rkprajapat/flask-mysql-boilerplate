@@ -12,3 +12,5 @@ DB_URI = "mysql+pymysql://%s:%s@%s:3306/%s?charset=UTF8MB4"\
 SQLALCHEMY_DATABASE_URI = DB_URI
 SQLALCHEMY_TRACK_MODIFICATIONS = True
 MYSQL_ROOT_PASSWORD = 'garwal83'  # os.environ['MYSQL_ROOT_PASSWORD']
+
+BASE_INSTANCE_OWNER_EMAIL = 'root@example.com'
