@@ -12,16 +12,11 @@ bp = Blueprint('instance', __name__)
 @bp.route('/instances/<int:instance_id>', methods=['GET'])
 # @AdminPermission()
 def list(instance_id):
-    print(instance_id)
     if instance_id:
-        print('Checking instance for id', instance_id)
-        result = Instance.query.get(1)
-        print('Found result', result)
+        result = Instance.query.get(instance_id)
     else:
         result = Instance.query.all()
-    print
     if result:
-
         return Response(json.dumps(result), status=200, mimetype='application/json')
     else:
         return Response('Instance not found', status=404)

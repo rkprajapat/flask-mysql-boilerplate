@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 import pyclbr
 import sys
+import traceback
 
 from settings import DB_URI
 from settings import BASE_INSTANCE_OWNER_EMAIL
@@ -31,6 +32,7 @@ def setup_db():
     except Exception as e:
         print('Something went wrong with database setup')
         print('ERROR :', e)
+        print(traceback.format_exc())
         return False
 
 
@@ -58,15 +60,33 @@ def setup_root_admin():
     instance = session.query(Instance).get(1)
     if instance:
         print('Base instance found')
+        print('Cheking if root user exists')
         user = session.query(User).get(1)
-    else:
+        if user:
+            print('root user found')
+        else:
+            print('root user not found. Creating root user')
+            user = User()
+            pw = input('Enter root user password:')
+            if not pw:
+                print('root user password can not be empty.')
+                sys.exit()
+            user.set_password(str(pw).encode('utf-8'))
+            user.__setattr__('user_name', 'root')
+            user.__setattr__('name', 'root')
+            user.__setattr__('instance_id', 1)
+            user.__setattr__('admin', True)
+            user.__setattr__('email', BASE_INSTANCE_OWNER_EMAIL)
+            session.add(user)
+            session.commit()
+            print('Completed creating root user')
 
+    else:
         print('Base instance not found. Creating Base instance')
-        instance = Instance()  # Create default instance
+        instance = Instance()
         instance.__setattr__('name', 'Base Instance')
         instance.__setattr__('owner_name', 'root')
         instance.__setattr__('owner_email', BASE_INSTANCE_OWNER_EMAIL)
-        print(instance)
         session.add(instance)
         session.commit()
         setup_root_admin()

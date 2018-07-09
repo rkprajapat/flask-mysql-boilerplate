@@ -103,13 +103,13 @@ def register_db(app):
     db = SQLAlchemy()
     db.init_app(app)
 
-    from controllers.instance.model import Instance
-    with app.test_request_context():
-        db.create_all()
-        db.session.commit()
+    # from controllers.instance.model import Instance
+    # with app.test_request_context():
+    #     db.create_all()
+    #     db.session.commit()
 
-    # migrate = Migrate(app, db)
-    return app
+    migrate = Migrate(app, db)
+    # return app
 
 
 def register_routes(app):
