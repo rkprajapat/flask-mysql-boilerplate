@@ -2,34 +2,34 @@
 from flask import render_template, Blueprint, redirect, request, url_for, Response
 import json
 from utils.permissions import AdminPermission
-from controllers.user.model import db, User
+from controllers.group.model import db, Group
 from utils.decorators import jsonify
 from datetime import datetime
 
-bp = Blueprint('user', __name__)
+bp = Blueprint('group', __name__)
 
 
-@bp.route('/users/<int:user_id>', methods=['GET'])
+@bp.route('/groups/<int:group_id>', methods=['GET'])
 # @AdminPermission()
-def list(user_id):
-    users = User.query.all()
+def list(group_id):
+    groups = Group.query.all()
     # print(sample_instances)
-    return Response(json.dumps(users), status=200, mimetype='application/json')
+    return Response(json.dumps(groups), status=200, mimetype='application/json')
 
 
-@bp.route('/users', methods=['POST'])
+@bp.route('/groups', methods=['POST'])
 # @AdminPermission()
 def create(data):
     return list_all()
 
 
-@bp.route('/users/<int:user_id>', methods=['DELETE'])
+@bp.route('/groups/<int:group_id>', methods=['DELETE'])
 # @AdminPermission()
-def delete(user_id):
+def delete(group_id):
     return list_all()
 
 
-@bp.route('/users/<int:user_id>', methods=['PUT', 'PATCH'])
+@bp.route('/groups/<int:group_id>', methods=['PUT', 'PATCH'])
 # @AdminPermission()
-def update(user_id, data):
+def update(group_id, data):
     return list_all()

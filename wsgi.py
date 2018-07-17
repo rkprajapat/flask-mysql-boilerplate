@@ -1,7 +1,7 @@
 # Set the path
 import os
 import sys
-
+import traceback
 
 
 sys.setrecursionlimit(10000)
@@ -13,4 +13,8 @@ from application import create_app
 app = create_app()
 
 if __name__ == "__main__":
-    app.run()
+    try:
+        app.run(debug=True)
+    except Exception as e:
+        app.logger.error(e)
+        app.logger.error(traceback.format_exc())

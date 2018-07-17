@@ -2,19 +2,21 @@
 
 import sys
 import logging
+import logging.config
+
 import time
-from flask import Flask, request, url_for, render_template, g
+from flask import Flask, render_template, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from werkzeug.contrib.fixers import ProxyFix
-from flask_wtf.csrf import CsrfProtect
+from flask_wtf.csrf import CSRFProtect
 from flask_debugtoolbar import DebugToolbarExtension
-from six import iteritems
 
 from utils.helpers import _import_submodules_from_package
 from utils.account import get_current_user
 import buildDB
-import controllers
+from logConfig import LoggerConfig
+from flask.logging import default_handler
 
 # convert python's encoding to utf8
 try:
@@ -26,22 +28,7 @@ except (AttributeError, NameError):
     pass
 
 
-
 def create_app(**config_overrides):
-    """Short summary.
-
-    Parameters
-    ----------
-    **config_overrides : type
-        Description of parameter `**config_overrides`.
-
-    Returns
-    -------
-    type
-        Description of returned object.
-
-    """
-
     app = Flask(__name__)
 
     # Load config
@@ -54,7 +41,17 @@ def create_app(**config_overrides):
     app.wsgi_app = ProxyFix(app.wsgi_app)
 
     # CSRF protect
-    CsrfProtect(app)
+    CSRFProtect(app)
+
+    # 'always' (default), 'never',  'production', 'debug'
+    app.config['LOGGER_HANDLER_POLICY'] = 'always'
+    app.logger  # initialise logger
+    logging.config.dictConfig(LoggerConfig.dictConfig)
+    # app.logger.removeHandler(default_handler)
+    print('Logger name -', app.logger.name)
+
+    if len(sys.argv) > 1 and sys.argv[1] == 'debug':
+        app.debug = True
 
     if app.debug or app.testing:
         DebugToolbarExtension(app)
@@ -65,10 +62,6 @@ def create_app(**config_overrides):
         # 'application/pages')
         # })
     else:
-        # Log errors to stderr in production mode
-        app.logger.addHandler(logging.StreamHandler())
-        app.logger.setLevel(logging.ERROR)
-
         from raven.contrib.flask import Sentry
         sentry = Sentry()
 
@@ -87,29 +80,24 @@ def create_app(**config_overrides):
         # })
 
     # Register components
-    register_routes(app)
-    register_db(app)
-    register_error_handle(app)
-    register_hooks(app)
+    with app.app_context():
+        register_routes(app)
+        register_db(app)
+        register_error_handle(app)
+        register_hooks(app)
 
     return app
 
 
 def register_db(app):
     # Check if database is already setup or not
-    print('Checking database setup')
-    if not buildDB.setup_db():
+    app.logger.info('Checking database setup')
+    if not buildDB.setup_db(app):
         sys.exit()
     db = SQLAlchemy()
     db.init_app(app)
 
-    # from controllers.instance.model import Instance
-    # with app.test_request_context():
-    #     db.create_all()
-    #     db.session.commit()
-
-    migrate = Migrate(app, db)
-    # return app
+    # migrate = Migrate(app, db)
 
 
 def register_routes(app):
@@ -121,7 +109,7 @@ def register_routes(app):
         for submodule in _import_submodules_from_package(module):
             module_name = submodule.__name__.split('.')[-1]
             if module_name == 'routes':
-                print("Loading routes : %s" % submodule.__name__)
+                app.logger.info("Loading routes : %s" % submodule.__name__)
                 bp = getattr(submodule, 'bp')
                 if bp and isinstance(bp, Blueprint):
                     app.register_blueprint(bp)
