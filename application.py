@@ -1,6 +1,7 @@
 """application.py."""
 
 import sys
+import os
 import logging
 import logging.config
 
@@ -9,6 +10,7 @@ from flask import Flask, render_template, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.wsgi import SharedDataMiddleware
 from flask_wtf.csrf import CSRFProtect
 from flask_debugtoolbar import DebugToolbarExtension
 
@@ -29,7 +31,7 @@ except (AttributeError, NameError):
 
 
 def create_app(**config_overrides):
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder='client')
 
     # Load config
     app.config.from_pyfile('settings.py')
@@ -41,14 +43,18 @@ def create_app(**config_overrides):
     app.wsgi_app = ProxyFix(app.wsgi_app)
 
     # CSRF protect
+    # # TODO: enable CSRFProtect
     CSRFProtect(app)
 
     # 'always' (default), 'never',  'production', 'debug'
     app.config['LOGGER_HANDLER_POLICY'] = 'always'
     app.logger  # initialise logger
     logging.config.dictConfig(LoggerConfig.dictConfig)
-    # app.logger.removeHandler(default_handler)
-    print('Logger name -', app.logger.name)
+
+    # Serve static files
+    app.wsgi_app = SharedDataMiddleware(app.wsgi_app, {
+        '/client': os.path.join(os.path.dirname(__file__), 'client')
+    })
 
     if len(sys.argv) > 1 and sys.argv[1] == 'debug':
         app.debug = True
@@ -56,16 +62,11 @@ def create_app(**config_overrides):
     if app.debug or app.testing:
         DebugToolbarExtension(app)
 
-        # Serve static files
-        # app.wsgi_app = SharedDataMiddleware(app.wsgi_app, {
-        #     '/pages': os.path.join(app.config.get('PROJECT_PATH'), \
-        # 'application/pages')
-        # })
     else:
         from raven.contrib.flask import Sentry
         sentry = Sentry()
 
-        # Enable Sentry
+        # TODO: Enable Sentry
         if app.config.get('SENTRY_DSN'):
             sentry.init_app(app, dsn=app.config.get('SENTRY_DSN'))
 
@@ -109,7 +110,7 @@ def register_routes(app):
         for submodule in _import_submodules_from_package(module):
             module_name = submodule.__name__.split('.')[-1]
             if module_name == 'routes':
-                app.logger.info("Loading routes : %s" % submodule.__name__)
+                app.logger.debug("Loading routes : %s" % submodule.__name__)
                 bp = getattr(submodule, 'bp')
                 if bp and isinstance(bp, Blueprint):
                     app.register_blueprint(bp)
@@ -120,15 +121,15 @@ def register_error_handle(app):
 
     @app.errorhandler(403)
     def page_403(error):
-        return render_template('site/403/403.html'), 403
+        return render_template('403/403.html'), 403
 
     @app.errorhandler(404)
     def page_404(error):
-        return render_template('site/404/404.html'), 404
+        return render_template('404/404.html'), 404
 
     @app.errorhandler(500)
     def page_500(error):
-        return render_template('site/500/500.html'), 500
+        return render_template('500/500.html'), 500
 
 
 def register_hooks(app):

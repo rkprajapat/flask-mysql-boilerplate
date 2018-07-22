@@ -1,5 +1,5 @@
 # coding: utf-8
-from flask import render_template, Blueprint, redirect, request, url_for, Response
+from flask import Blueprint, redirect, request, url_for, Response
 import json
 from utils.permissions import AdminPermission
 from controllers.instance.model import db, Instance
@@ -9,15 +9,15 @@ from datetime import datetime
 bp = Blueprint('instance', __name__)
 
 
-@bp.route('/instances/<int:instance_id>', methods=['GET'])
+@bp.route('/instances', methods=['GET'])
 # @AdminPermission()
-def list(instance_id):
-    if instance_id:
-        result = Instance.query.get(instance_id)
-    else:
-        result = Instance.query.all()
+def list_all():
+    print('getting all')
+    result = Instance.query.all()
     if result:
-        return Response(json.dumps(result), status=200, mimetype='application/json')
+        all = [x.to_json() for x in result]
+        print(all)
+        return Response(json.dumps(all), status=200, mimetype='application/json')
     else:
         return Response('Instance not found', status=404)
 

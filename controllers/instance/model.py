@@ -2,10 +2,12 @@
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 
+from utils.serializer import OutputMixin
+
 db = SQLAlchemy()
 
 
-class Instance(db.Model):
+class Instance(OutputMixin, db.Model):
     __tablename__ = 'instances'
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     name = db.Column(db.String(100), unique=True, nullable=False)
