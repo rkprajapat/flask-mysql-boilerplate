@@ -12,6 +12,7 @@ from flask_migrate import Migrate
 from werkzeug.contrib.fixers import ProxyFix
 from werkzeug.wsgi import SharedDataMiddleware
 from flask_wtf.csrf import CSRFProtect
+from flask_cors import CORS
 from flask_debugtoolbar import DebugToolbarExtension
 
 from utils.helpers import _import_submodules_from_package
@@ -32,6 +33,7 @@ except (AttributeError, NameError):
 
 def create_app(**config_overrides):
     app = Flask(__name__, template_folder='client')
+    CORS(app)  # TODO: change this to restrict domain in production
 
     # Load config
     app.config.from_pyfile('settings.py')

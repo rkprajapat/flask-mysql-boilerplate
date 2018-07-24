@@ -1,10 +1,12 @@
 # coding: utf-8
 from flask import render_template, Blueprint, redirect, request, url_for, Response
 import json
+from datetime import datetime
+
+
 from utils.permissions import AdminPermission
 from controllers.group.model import db, Group
-from utils.decorators import jsonify
-from datetime import datetime
+
 
 bp = Blueprint('group', __name__)
 

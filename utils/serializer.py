@@ -1,8 +1,10 @@
 import json
 from uuid import UUID
 from datetime import datetime
-
 from sqlalchemy.ext.declarative import DeclarativeMeta
+
+from utils.encoder_decoder import to_serializable
+
 
 
 class OutputMixin(object):
@@ -32,16 +34,6 @@ class OutputMixin(object):
         return res
 
     def to_json(self, rel=None):
-        def extended_encoder(x):
-            if isinstance(x, datetime):
-                return x.isoformat()
-            if isinstance(x, UUID):
-                return str(x)
-            if isinstance(x, str):
-                return str(x)
-            if isinstance(x, int):
-                return int(int)
-
         if rel is None:
             rel = self.RELATIONSHIPS_TO_DICT
-        return json.dumps(self.to_dict(rel), default=extended_encoder)
+        return json.dumps(self.to_dict(rel), default=to_serializable)
