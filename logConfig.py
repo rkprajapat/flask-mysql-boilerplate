@@ -42,7 +42,7 @@ class LoggerConfig:
                 'propagate': True
             },
             'werkzeug': {
-                'handlers': ['default', 'console'],
+                'handlers': ['console'],
                 'propagate': True,
                 'level': 'INFO'
             },

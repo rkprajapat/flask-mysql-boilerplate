@@ -27,7 +27,7 @@ def setup_db(app):
         if not database_exists(DB_URI):
             app.logger.warning('Database not found. Creating database')
             create_database(DB_URI)
-        app.logger.info('Cheking database tables')
+        app.logger.info('Checking database tables')
         create_tables(app)
         return True
     except Exception as e:
@@ -61,7 +61,7 @@ def setup_root_admin(app):
     instance = session.query(Instance).get(1)
     if instance:
         app.logger.info('Base instance found')
-        app.logger.info('Cheking if root user exists')
+        app.logger.info('Checking if root user exists')
         user = session.query(User).get(1)
         if user:
             app.logger.info('root user found')
