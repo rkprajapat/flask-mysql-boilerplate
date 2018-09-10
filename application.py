@@ -4,9 +4,11 @@ import sys
 import os
 import logging
 import logging.config
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 import time
-from flask import Flask, render_template, g
+from flask import Flask, render_template, g, request, abort, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from werkzeug.contrib.fixers import ProxyFix
@@ -46,7 +48,7 @@ def create_app(**config_overrides):
 
     # CSRF protect
     # # TODO: enable CSRFProtect
-    CSRFProtect(app)
+    # CSRFProtect(app)
 
     # 'always' (default), 'never',  'production', 'debug'
     app.config['LOGGER_HANDLER_POLICY'] = 'always'
@@ -140,14 +142,15 @@ def register_hooks(app):
     @app.before_request
     def before_request():
         g.user = get_current_user()
-        if g.user and g.user.is_admin:
-            g._before_request_time = time.time()
+        # if g.user and g.user.is_admin:
+        g._before_request_time = time.time()
 
     @app.after_request
     def after_request(response):
         if hasattr(g, '_before_request_time'):
             delta = time.time() - g._before_request_time
-            response.headers['X-Render-Time'] = delta * 1000
+            response.headers[
+                'X-Render-Time'] = str(round(delta * 1000, 3)) + ' milliseconds'
         return response
 
 

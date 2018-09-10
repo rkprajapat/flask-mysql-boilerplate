@@ -1,5 +1,6 @@
 # coding: utf-8
 from datetime import datetime
+import dateutil.parser
 from flask_sqlalchemy import SQLAlchemy
 
 from utils.serializer import OutputMixin
@@ -18,8 +19,9 @@ class Instance(OutputMixin, db.Model):
     active = db.Column(db.Boolean, default=True)
 
     def __setattr__(self, name, value):
-        super(Instance, self).__setattr__(name, value)
-        super(Instance, self).__setattr__('modified_at', datetime.now())
+        if name != 'created_at' and name != 'modified_at':
+            super(Instance, self).__setattr__(name, value)
+            super(Instance, self).__setattr__('modified_at', datetime.now())
 
     def is_active(self):
         return self.active
