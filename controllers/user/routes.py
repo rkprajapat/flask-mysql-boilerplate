@@ -2,11 +2,10 @@
 from flask import Blueprint, request, Response, current_app
 import json
 import traceback
-from sqlalchemy import or_
+from sqlalchemy.event import listen
 
 from utils.permissions import AdminPermission
 from controllers.user.model import db, User
-from controllers.instance.model import Instance
 from utils.encoder_decoder import to_serializable
 
 
@@ -17,14 +16,32 @@ bp = Blueprint('user', __name__)
 # @AdminPermission()
 def list_all():
     try:
-        result = User.query.all()
-        if result:
+        search_term = str(request.args.get('name'))
+        offset = int(request.args.get('offset'))
+        limit = int(request.args.get('limit'))
+        if not offset:
+            offset = 0
+        if not limit:
+            limit = 100
+        if search_term:
+            result = User.query.\
+                filter(User.name.like('%' + search_term + '%')).\
+                order_by(User.id).\
+                slice(offset, limit).\
+                all()
+        else:
+            result = User.query.\
+                order_by(User.id).\
+                offset(offset).\
+                limit(limit).\
+                all()
+        if len(result) > 0:
             return Response(json.dumps([x.to_json() for x in result],
                                        default=to_serializable),
                             status=200,
                             mimetype='application/json')
         else:
-            return Response(status=404)
+            return Response([], status=200, mimetype='application/json')
     except Exception as e:
         current_app.logger.error(traceback.format_exc())
         return Response(status=404)
@@ -35,7 +52,9 @@ def list_all():
 def list_one(instance_id, obj_id):
     try:
         obj = User.query.filter(User.id == obj_id,
-                                User.instance_id == instance_id).first()
+                                User.instance_id == instance_id).\
+            order_by(User.id).\
+            first()
         if obj:
             return Response(obj.to_json(),
                             status=200,
