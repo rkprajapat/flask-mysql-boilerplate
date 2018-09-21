@@ -17,12 +17,18 @@ bp = Blueprint('user', __name__)
 def list_all():
     try:
         search_term = str(request.args.get('name'))
-        offset = int(request.args.get('offset'))
-        limit = int(request.args.get('limit'))
-        if not offset:
+        offset = request.args.get('offset')
+        limit = request.args.get('limit')
+        if offset:
+            offset = int(offset)
+        else:
             offset = 0
-        if not limit:
+
+        if limit:
+            limit = int(limit)
+        else:
             limit = 100
+
         if search_term:
             result = User.query.\
                 filter(User.name.like('%' + search_term + '%')).\

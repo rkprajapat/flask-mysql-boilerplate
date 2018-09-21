@@ -38,5 +38,9 @@ class User(OutputMixin, db.Model):
             super(User, self).__setattr__(name, value)
             super(User, self).__setattr__('modified_at', datetime.now())
 
+    def _set_last_login(self):
+        super(User, self).__setattr__('last_login', datetime.now())
+        db.session.commit()
+
     def __repr__(self):
         return '<User %s>' % self.name

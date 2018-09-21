@@ -9,6 +9,12 @@ from dateutil.relativedelta import relativedelta
 
 import time
 from flask import Flask, render_template, g, request, abort, session
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    jwt_refresh_token_required, create_refresh_token,
+    get_jwt_identity, set_access_cookies,
+    set_refresh_cookies, unset_jwt_cookies
+)
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from werkzeug.contrib.fixers import ProxyFix
@@ -18,7 +24,7 @@ from flask_cors import CORS
 from flask_debugtoolbar import DebugToolbarExtension
 
 from utils.helpers import _import_submodules_from_package
-from utils.account import get_current_user
+# from utils.account import get_current_user
 import buildDB
 from logConfig import LoggerConfig
 from flask.logging import default_handler
@@ -39,6 +45,8 @@ def create_app(**config_overrides):
 
     # Load config
     app.config.from_pyfile('settings.py')
+
+    jwt = JWTManager(app)
 
     # apply overrides for tests
     app.config.update(config_overrides)
@@ -141,7 +149,7 @@ def register_hooks(app):
 
     @app.before_request
     def before_request():
-        g.user = get_current_user()
+        g.user = '' #get_current_user()
         # if g.user and g.user.is_admin:
         g._before_request_time = time.time()
 
